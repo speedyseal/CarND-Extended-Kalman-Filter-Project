@@ -16,10 +16,20 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
     * Calculate the RMSE here.
   */
 
-  assert(estimations.size() == ground_truth.size() && estimations.size() != 0);
+  //assert(estimations.size() == ground_truth.size() && estimations.size() != 0);
   
   VectorXd rmse(4);
+  rmse << 0., 0., 0., 0.;
 
+  if(estimations.size() != ground_truth.size()) {
+    cout << "error: estimations != ground_truth dimentions" << endl;
+    return rmse;
+  }
+  if( estimations.size() == 0 ) {
+    cout << "error: estimations size == 0" << endl;
+    return rmse;
+  }
+  
   for(auto i=0; i< estimations.size(); ++i) {
     VectorXd tmp = estimations[i] - ground_truth[i];
     tmp = tmp.array() * tmp.array();
@@ -48,8 +58,9 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
   const auto srx2y2 = sqrt(x2y2);
   const auto x2y2p32 = srx2y2*srx2y2*srx2y2;
 
-  if( fabs(srx2y2) < 0.0001 ) {
-    Hj = MatrixXd::Zero(3,4);
+  if( fabs(x2y2) < 0.0001 ) {
+    cout << "CalculateJacobian() - Divide by zero" << endl;
+    return Hj;
   } else {
     Hj << px/srx2y2, py/srx2y2, 0., 0.,
       -py/x2y2  , px/x2y2, 0., 0.,

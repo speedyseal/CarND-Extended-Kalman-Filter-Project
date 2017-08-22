@@ -1,6 +1,8 @@
 #include "kalman_filter.h"
 #include <cmath>
+#include <iostream>
 
+using namespace std;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
@@ -26,6 +28,9 @@ void KalmanFilter::Predict() {
   x_ = F_ * x_;
   auto FT = F_.transpose();
   P_ = F_ * P_ * FT + Q_;
+  /*
+  cout << "predicted x = " << x_ << endl;
+  */
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
@@ -33,14 +38,27 @@ void KalmanFilter::Update(const VectorXd &z) {
   TODO:
     * update the state by using Kalman Filter equations
   */
-  auto z_p = H_ * x_;
-  auto y = z - z_p;
-  auto HT = H_.transpose();
-  auto S = H_ * P_ * HT + R_;
-  auto Sinv = S.inverse();
-  auto K = P_ * HT * Sinv;
+  VectorXd z_p = H_ * x_;
+  /*
+  cout << "z meas = " << z << endl;
+  cout << "z_p = " << z_p << endl;
+  */
+
+  VectorXd y = z - z_p;
+  MatrixXd HT = H_.transpose();
+  MatrixXd S = H_ * P_ * HT + R_;
+  MatrixXd Sinv = S.inverse();
+  MatrixXd K = P_ * HT * Sinv;
+  /*
+  cout << "P_ = " << P_ << endl;
+  cout << "Kalman HT = " << HT << endl;
+  cout << "Kalman S = " << S << endl;
+  cout << "Kalman Sinv = " << Sinv << endl;
+  cout << "Kalman K = " << K << endl;
+  cout << "err y = " << y << endl;
+  */
   x_ = x_ + K * y;
-  auto I = MatrixXd::Identity(x_.size(), x_.size());
+  MatrixXd I = MatrixXd::Identity(x_.size(), x_.size());
   P_ = (I - K * H_) * P_;
   
 }
@@ -70,15 +88,31 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   }
   z_p(1) = phi_p;
 
-  z_p(2) = (px*vx + py*vy)/z(0);
-
-  auto y = z - z_p;
-  auto HT = H_.transpose();
-  auto S = H_ * P_ * HT + R_;
-  auto Sinv = S.inverse();
-  auto K = P_ * HT * Sinv;
+  if (z(0)  < 0.0001) {
+    cout << "UpdateEKF() - Divide by zero" << endl;
+    z_p(2) = 0.;
+  } else {
+    z_p(2) = (px*vx + py*vy)/z(0);
+  }
+  /*
+  cout << "z meas = " << z << endl;
+  cout << "z_p = " << z_p << endl;
+  */
+  VectorXd y = z - z_p;
+  MatrixXd HT = H_.transpose();
+  MatrixXd S = H_ * P_ * HT + R_;
+  MatrixXd Sinv = S.inverse();
+  MatrixXd K = P_ * HT * Sinv;
+  /*
+  cout << "P_ = " << P_ << endl; 
+  cout << "EKF HT = " << HT << endl;
+  cout << "EKF S = " << S << endl;
+  cout << "EKF Sinv = " << Sinv << endl;
+  cout << "EKF K = " << K << endl;
+  cout << "err y = " << y << endl;
+  */
   x_ = x_ + K * y;
-  auto I = MatrixXd::Identity(x_.size(), x_.size());
+  MatrixXd I = MatrixXd::Identity(x_.size(), x_.size());
   P_ = (I - K * H_) * P_;
     
 }
