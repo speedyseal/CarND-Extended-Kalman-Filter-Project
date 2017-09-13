@@ -54,18 +54,18 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 
   MatrixXd Hj(3,4);
 
-  const auto x2y2 = px*px + py*py;
+  auto x2y2 = px*px + py*py;
   const auto srx2y2 = sqrt(x2y2);
   const auto x2y2p32 = srx2y2*srx2y2*srx2y2;
 
-  if( fabs(x2y2) < 0.0001 ) {
+  const auto kThreshold = 0.0001;
+  if( fabs(x2y2) < kThreshold ) {
     cout << "CalculateJacobian() - Divide by zero" << endl;
-    return Hj;
-  } else {
-    Hj << px/srx2y2, py/srx2y2, 0., 0.,
-      -py/x2y2  , px/x2y2, 0., 0.,
-      py*(vx*py-vy*px)/x2y2p32, px*(vy*px-vx*py)/x2y2p32, px/srx2y2, py/srx2y2;
+    x2y2 = kThreshold;
   }
+  Hj << px/srx2y2, py/srx2y2, 0., 0.,
+    -py/x2y2  , px/x2y2, 0., 0.,
+    py*(vx*py-vy*px)/x2y2p32, px*(vy*px-vx*py)/x2y2p32, px/srx2y2, py/srx2y2;
   return Hj;
   
 }

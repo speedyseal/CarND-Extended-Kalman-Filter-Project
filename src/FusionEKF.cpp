@@ -53,7 +53,13 @@ FusionEKF::FusionEKF() {
     0., 0., 0., 1.;
 
   ekf_.Q_ = MatrixXd(4,4);
+  ekf_.Q_ << 0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0;
 
+  ekf_.x_ = VectorXd(4);
+  ekf_.x_ << 0, 0, 0, 0;
 }
 
 /**
@@ -76,25 +82,22 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     */
     // first measurement
     // cout << "EKF: " << endl;
-    ekf_.x_ = VectorXd(4);
-    ekf_.x_ << 1, 1, 1, 1;
-
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       /**
       Convert radar from polar to cartesian coordinates and initialize state.
       */
-      auto ro = measurement_pack.raw_measurements_(0);
-      auto phi = measurement_pack.raw_measurements_(1);
-      auto x = cos(phi) * ro;
-      auto y = sin(phi) * ro;
+      const auto ro = measurement_pack.raw_measurements_(0);
+      const auto phi = measurement_pack.raw_measurements_(1);
+      const auto x = cos(phi) * ro;
+      const auto y = sin(phi) * ro;
       ekf_.x_ << x, y, 0., 0.;
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       /**
       Initialize state.
       */
-      auto x = measurement_pack.raw_measurements_(0);
-      auto y = measurement_pack.raw_measurements_(1);
+      const auto x = measurement_pack.raw_measurements_(0);
+      const auto y = measurement_pack.raw_measurements_(1);
       ekf_.x_ << x, y, 0., 0.;
     }
 
@@ -126,16 +129,16 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
      * Update the process noise covariance matrix.
      * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
-  auto dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
+  const auto dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
   ekf_.F_(0,2) = dt;
   ekf_.F_(1,3) = dt;
   previous_timestamp_ = measurement_pack.timestamp_;
 
-  auto dt_2 = dt * dt;
-  auto dt_3 = dt_2 * dt;
-  auto dt_4 = dt_3 * dt;
-  auto noiseax = 9.;
-  auto noiseay = 9.;
+  const auto dt_2 = dt * dt;
+  const auto dt_3 = dt_2 * dt;
+  const auto dt_4 = dt_3 * dt;
+  const auto noiseax = 9.;
+  const auto noiseay = 9.;
   ekf_.Q_ << dt_4/4.*noiseax, 0., dt_3/2.*noiseax, 0.,
     0., dt_4/4.*noiseay, 0., dt_3/2.*noiseay,
     dt_3/2.*noiseax, 0., dt_2*noiseax, 0.,
@@ -165,6 +168,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     ekf_.R_ = R_laser_;
     ekf_.Update(measurement_pack.raw_measurements_);
   }
+
   /*
   // print the output
   cout << "x_ = " << ekf_.x_ << endl;
