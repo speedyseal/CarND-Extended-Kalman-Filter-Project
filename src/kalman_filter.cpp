@@ -58,7 +58,7 @@ void KalmanFilter::Update(const VectorXd &z) {
   cout << "Kalman K = " << K << endl;
   cout << "err y = " << y << endl;
   */
-  x_ = x_ + K * y;
+  x_ = x_ + (K * y);
   const MatrixXd I = MatrixXd::Identity(x_.size(), x_.size());
   P_ = (I - K * H_) * P_;
   
@@ -83,12 +83,12 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   auto phi_p = std::atan2(py, px);
   z_p(1) = phi_p;
 
-  if (z(0)  < 0.0001) {
+  if (z_p(0)  < 0.0001) {
     cout << "UpdateEKF() - Divide by zero" << endl;
-    z_p(2) = 0.;
-  } else {
-    z_p(2) = (px*vx + py*vy)/z(0);
+    z_p(0) = 0.0001;
   }
+  z_p(2) = (px*vx + py*vy)/z_p(0);
+
   /*
   cout << "z meas = " << z << endl;
   cout << "z_p = " << z_p << endl;
@@ -115,7 +115,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   cout << "EKF K = " << K << endl;
   cout << "err y = " << y << endl;
   */
-  x_ = x_ + K * y;
+  x_ = x_ + (K * y);
   const MatrixXd I = MatrixXd::Identity(x_.size(), x_.size());
   P_ = (I - K * H_) * P_;
     
